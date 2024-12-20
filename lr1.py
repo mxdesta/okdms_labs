@@ -44,6 +44,7 @@ Alpha_A = np.arctan2(Ay, Ax)
 # масштабируем чтоб не выходили за пределы отображения
 k_V = 0.34  # Масштаб скорости
 k_A = 0.05  # Масштаб ускорения
+k_R = 0.4  # Масштаб радиус-вектора
 
 fig = plt.figure(figsize=[10, 10])
 ax = fig.add_subplot(1, 1, 1)
@@ -67,6 +68,10 @@ RotX_A, RotY_A = Rot2D(arrow_shape_x, arrow_shape_y, Alpha_A[0])
 V_Arrow = ax.plot(x[0] + Vx[0] + RotX_V, y[0] + Vy[0] + RotY_V, 'r')[0]
 A_Arrow = ax.plot(x[0] + Ax[0] + RotX_A, y[0] + Ay[0] + RotY_A, 'b')[0]
 
+# Добавляем стрелочку для радиус-вектора
+RotX_R, RotY_R = Rot2D(arrow_shape_x, arrow_shape_y, np.arctan2(y[0], x[0]))
+R_Arrow = ax.plot(x[0] + k_R * x[0] + RotX_R, y[0] + k_R * y[0] + RotY_R, 'g')[0]
+
 # легенда
 ax.legend()
 
@@ -77,7 +82,7 @@ acceleration_text = ax.text(-11, 9, '', fontsize=12)
 
 def TheMagicOfThtMovement(i):
     P.set_data([x[i]], [y[i]])
-    R_line.set_data([0, x[i]], [0, y[i]])
+    R_line.set_data([0, x[i]], [0, y[i]])  # Радиус-вектор от начала координат до точки
     V_line.set_data([x[i], x[i] + k_V * Vx[i]], [y[i], y[i] + k_V * Vy[i]])
 
     RotX_V, RotY_V = Rot2D(arrow_shape_x, arrow_shape_y, Alpha_V[i])
@@ -87,13 +92,19 @@ def TheMagicOfThtMovement(i):
     RotX_A, RotY_A = Rot2D(arrow_shape_x, arrow_shape_y, Alpha_A[i])
     A_Arrow.set_data(x[i] + k_A * Ax[i] + RotX_A, y[i] + k_A * Ay[i] + RotY_A)
 
+    # Обновляем стрелочку для радиус-вектора
+    # Радиус-вектор теперь точно направлен в точку (x[i], y[i])
+    RotX_R, RotY_R = Rot2D(arrow_shape_x, arrow_shape_y, np.arctan2(y[i], x[i]))
+    R_Arrow.set_data(x[i] + RotX_R, y[i] + RotY_R)
+
     time_text.set_text(f"Время: {t[i]:.2f} с")
     velocity_text.set_text(f"|V|: {np.sqrt(Vx[i] ** 2 + Vy[i] ** 2):.2f} ед.")
     acceleration_text.set_text(f"|A|: {np.sqrt(Ax[i] ** 2 + Ay[i] ** 2):.2f} ед.")
 
-    return P, R_line, V_line, A_line, V_Arrow, A_Arrow, time_text, velocity_text, acceleration_text
+    return P, R_line, V_line, A_line, V_Arrow, A_Arrow, R_Arrow, time_text, velocity_text, acceleration_text
+
 
 
 # Animate
-kino = FuncAnimation(fig, TheMagicOfThtMovement, frames=len(t), interval=1000 / 60, blit=True)
+kino = FuncAnimation(fig, TheMagicOfThtMovement, frames=len(t), interval=1000 / 40, blit=True)
 plt.show()
