@@ -11,7 +11,7 @@ fix_ui('TkAgg')
 m = 1  # масса материальных точек
 l1 = 1 # длина первого стержня
 l2 = 1  # длина второго стержня
-c = 1 # жесткость пружины
+c = 1  # Жесткость пружины
 g = 9.81  # ускорение свободного падения
 
 # Временные параметры
@@ -20,11 +20,12 @@ t_fin = 20  # Время моделирования (в секундах)
 t_vals = np.linspace(0, t_fin, Steps)  # Массив временных точек
 
 # Начальные условия (углы и угловые скорости)
-phi0 = np.pi / 6  # Начальный угол для первого маятника
-psi0 = np.pi / 3  # Начальный угол для второго маятника
+phi0 = np.pi / 10  # Начальный угол для первого маятника
+psi0 = np.pi / 10  # Начальный угол для второго маятника
 dphi0 = 0  # Начальная угловая скорость для первого маятника
 dpsi0 = 0  # Начальная угловая скорость для второго маятника
 y0 = [phi0, psi0, dphi0, dpsi0]  # Начальные условия для интеграции
+
 
 # Функция для решения дифференциальных уравнений
 def odesys(y, t, m, l1, l2, c, g):
@@ -39,6 +40,7 @@ def odesys(y, t, m, l1, l2, c, g):
 
     return dydt
 
+
 # Решение системы
 Y = odeint(odesys, y0, t_vals, args=(m, l1, l2, c, g))
 
@@ -48,6 +50,7 @@ psi = Y[:, 1]
 dphi = Y[:, 2]
 dpsi = Y[:, 3]
 
+N = m * l1 * dphi ** 2 + c * l1 * np.sin(phi)
 # Координаты материальных точек
 x_O = 0  # Координата верхней точки крепления маятника
 y_O = 0
@@ -63,7 +66,6 @@ y_slider_top = 1.0  # Верхняя граница ползуна (поднял
 y_slider_bottom = -1.5  # Нижняя граница ползуна (поставим ниже)
 
 # Координата точки на ползуне (движущаяся точка пружины)
-# Теперь точка крепления пружины движется вверх и вниз в зависимости от угла маятника
 y_spring_attach = -0.5 + 0.2 * np.sin(phi)  # Точка движется вверх и вниз
 
 # Параметры пружины
@@ -83,8 +85,9 @@ slider, = ax.plot([x_slider, x_slider], [y_slider_bottom, y_slider_top], 'k-', l
 top_plane, = ax.plot([-2.5, 2], [0, 0], 'k-', lw=4)  # Горизонтальная плоскость сверху
 
 # Подписи точек
-point_M1 = ax.text(0, 0, 'M1', color='blue', fontsize=12, ha='right')  # Подпись для первой точки
-point_M2 = ax.text(0, 0, 'M2', color='red', fontsize=12, ha='right')  # Подпись для второй точки
+point_M1 = ax.text(0, 0, 'M1', color='blue', fontsize=12, ha='right')
+point_M2 = ax.text(0, 0, 'M2', color='red', fontsize=12, ha='right')
+
 
 def init():
     """Инициализация объектов анимации."""
@@ -94,6 +97,7 @@ def init():
     point_M1.set_position((0, 0))  # Сбрасываем позицию подписи первой точки
     point_M2.set_position((0, 0))  # Сбрасываем позицию подписи второй точки
     return line1, line2, spring, point_M1, point_M2, slider, top_plane  # Возвращаем объекты для анимации
+
 
 def update(frame):
     """Обновление координат для каждого кадра."""
@@ -117,6 +121,7 @@ def update(frame):
 
     return line1, line2, spring, point_M1, point_M2, slider, top_plane  # Возвращаем объекты для анимации
 
+
 # Создание анимации
 ani = FuncAnimation(fig, update, frames=Steps, init_func=init, interval=40, blit=True)
 
@@ -127,8 +132,8 @@ ax.legend()
 plt.show()
 
 # Вычисление кинетической и потенциальной энергии
-T = 0.5 * m * (l1 * dphi)**2 + 0.5 * m * (l2 * dpsi)**2
-U = m * g * (l1 * (1 - np.cos(phi)) + l2 * (1 - np.cos(psi))) + 0.5 * c * l1**2 * np.sin(phi)**2
+T = 0.5 * m * (l1 * dphi) ** 2 + 0.5 * m * (l2 * dpsi) ** 2
+U = m * g * (l1 * (1 - np.cos(phi)) + l2 * (1 - np.cos(psi))) + 0.5 * c * l1 ** 2 * np.sin(phi) ** 2
 
 # Вычисление полной энергии
 E = T + U
@@ -137,27 +142,28 @@ E = T + U
 # Построение графиков зависимостей в одной фигуре с несколькими подграфиками
 fig, axes = plt.subplots(3, 1, figsize=(10, 12))  # Создаем фигуру с сеткой 3x1
 
-# График кинетической энергии
-axes[0].plot(t_vals, T, label='Кинетическая энергия', color='blue')
-axes[0].set_title('Кинетическая энергия')
+
+
+axes[0].plot(t_vals, phi, label='ϕ(t)', color='blue')
+axes[0].set_title('График ϕ(t)')
 axes[0].set_xlabel('Время (с)')
-axes[0].set_ylabel('Энергия (Дж)')
+axes[0].set_ylabel('ϕ (рад)')
 axes[0].legend()
 axes[0].grid(True)
 
-# График потенциальной энергии
-axes[1].plot(t_vals, U, label='Потенциальная энергия', color='green')
-axes[1].set_title('Потенциальная энергия')
+# График psi(t)
+axes[1].plot(t_vals, psi, label='ψ(t)', color='green')
+axes[1].set_title('График ψ(t)')
 axes[1].set_xlabel('Время (с)')
-axes[1].set_ylabel('Энергия (Дж)')
+axes[1].set_ylabel('ψ (рад)')
 axes[1].legend()
 axes[1].grid(True)
 
-# График полной энергии
-axes[2].plot(t_vals, E, label='Полная энергия', color='red')
-axes[2].set_title('Полная энергия')
+# График N(t)
+axes[2].plot(t_vals, N, label='N(t)', color='red')
+axes[2].set_title('График N(t)')
 axes[2].set_xlabel('Время (с)')
-axes[2].set_ylabel('Энергия (Дж)')
+axes[2].set_ylabel('N (Н)')
 axes[2].legend()
 axes[2].grid(True)
 
